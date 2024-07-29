@@ -34,6 +34,7 @@ read_air <- function() {
   isp.air1 <- read_data('isparta', c('pm10', 'so2'), 'air')
   x <- xts(isp.air1[,-1], order.by = isp.air1$date, tzone = 'GMT')
   x <- zoo::na.trim(x)
+  x["2017-11-20/2017-11-22"] <- NA
 
   # Read the second part from a csv file.
   isp.air2 <- read.csv("data-raw/csv/air_2021.csv")
