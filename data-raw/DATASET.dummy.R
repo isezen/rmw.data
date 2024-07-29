@@ -2,6 +2,7 @@
 # Python airdb package must be installed to run this code.
 
 library(xts)
+library(forecast)
 library(ncdf4)
 library(reticulate)
 library(reshape2)
@@ -29,7 +30,18 @@ read_data <- function(city, params, db = 'met') {
 
   isp.met <- cbind(date = zoo::index(x), as.data.frame(x))
   rownames(isp.met) <- NULL
-return(isp.met)
+  return(isp.met)
+}
+
+read_air <- function() {
+  isp.air1 <- read_data('isparta', c('pm10', 'so2'), 'air')
+  isp.air1 <- zoo::na.trim(isp.air1)
+
+  # Read the second part from a csv file.
+  isp.air2 <- read.csv("data-raw/csv/air_2021.csv")
+  isp.air2$date <- as.POSIXct(isp.air2$date, tz = "GMT")
+
+  rbind(isp.air1, isp.air2)
 }
 
 read_blh_from_netcdf <- function(filename, target_lat, target_lon) {
@@ -65,13 +77,21 @@ read_blh_from_csv <- function(filename) {
   return(x)
 }
 
-# Read meteorogy data
-params <- c('temp', 'wspd', 'wdir', 'rh', 'precp', 'apres')
-isp.met <- read_data("isparta", params, 'met')
+# Read air pol. data
+isp.air <- read_air()
+x <- xts::xts(isp.air[, -1], order.by = isp.air$date, tzone = 'GMT')
+# x <- x["2013/2020"]
+isp.air <- data.frame(date = zoo::index(x), as.data.frame(x))
+rownames(isp.air) <- NULL
 
-# read BLH data
-# TODO: Read from netcf file
-isp.blh <- read_blh_from_csv("data-raw/csv/blh.csv")
-isp.met <- merge(isp.met, isp.blh, by = "date", all = FALSE)
+# Read meteorology data
+isp.met <- read_data("isparta", c('temp', 'wspd', 'wdir', 'rh', 'precp', 'apres'), 'met')
 
-usethis::use_data(isp.met, overwrite = TRUE)
+x <- as.matrix(isp.air[, -1])
+y <- forecast::msts(isp.air$pm10, seasonal.periods = c(24, 8766))
+z <- forecast::mstl(y, s.window = "periodic")
+zdf <- as.data.frame(z)
+xdf <- xts::xts(zdf, order.by = isp.air$date, tzone = 'GMT')
+forecast::autoplot(z)
+
+# usethis::use_data(isp.met, overwrite = TRUE)
