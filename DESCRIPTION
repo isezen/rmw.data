@@ -1,0 +1,14 @@
+Package: rmw.data
+Type: Package
+Title: Remove Weather Data
+Version: 0.1.0
+Author: Ismail SEZEN
+Maintainer: TIsmail SEZEN <sezenismail@gmail.com>
+Description: This package contains PM10,SO2 and meteorological data for removing weather effect from air pollution data.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Depends: 
+    R (>= 2.10)
