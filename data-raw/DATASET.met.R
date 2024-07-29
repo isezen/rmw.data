@@ -62,6 +62,7 @@ read_blh_from_netcdf <- function(filename, target_lat, target_lon) {
 read_blh_from_csv <- function(filename) {
   x <- read.csv(filename)
   colnames(x) <- c("date", "blh")
+  x$date <- as.POSIXct(x$date, tz = "GMT")
   return(x)
 }
 
